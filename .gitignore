@@ -1,0 +1,5 @@
+*.m
+.vscode
+__pycache__
+/slprj
+imagenes_trabajo
