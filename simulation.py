@@ -1,20 +1,21 @@
 from threading import Thread
+from core import RoadPath
 import time
 import pygame
 from traffic_system import Traffic
 from pygame import Surface
-from roads import mainRoad, leftRoadA, leftRoadB, leftRoadC, leftRoadD, leftRoadAr
+from roads import roads
 import random
 from matplotlib import pyplot as plt
 import matplotlib.backends.backend_agg as agg
-
+import pyperclip
 
 WIDTH, HEIGHT = 800, 600
 WORLD_WIDTH, WORLD_HEIGHT = 2000, 2000
 
-background = pygame.image.load("assets/road_structure.png")
+background = pygame.image.load("assets/tiled/map_tiled.png")
 background = pygame.transform.scale(background, (WORLD_WIDTH, WORLD_HEIGHT))
-background.set_alpha(128)
+# background.set_alpha(128)
 
 class Graph:
     def __init__(self,parent=None) -> None:
@@ -49,12 +50,20 @@ class Simulation:
         self.events = SimulationEvents(pygame.event.get(),self)
         self.traffic = Traffic(screen,self.zoom_level,self.background_pos)
         self.traffic.addObstacle(849,1482,50,50)
-        self.traffic.roads.append(mainRoad)
-        self.traffic.roads.append(leftRoadA)
-        self.traffic.roads.append(leftRoadAr)
-        self.traffic.roads.append(leftRoadB)
-        self.traffic.roads.append(leftRoadC)
-        self.traffic.roads.append(leftRoadD)
+        for road in roads:
+            roadPath = RoadPath()
+            roadPath.roadName = road["name"]
+            roadPath.direction = road["direction"]
+            for point in road["points"]:
+                roadPath.addPoint(point[0],point[1])
+            self.traffic.roads.append(roadPath)
+        
+        # self.traffic.roads.append(mainRoad)
+        # self.traffic.roads.append(leftRoadA)
+        # self.traffic.roads.append(leftRoadAr)
+        # self.traffic.roads.append(leftRoadB)
+        # self.traffic.roads.append(leftRoadC)
+        # self.traffic.roads.append(leftRoadD)
         
         vthread = Thread(target=self.addVehiclesByInterval)
         vthread.start()
@@ -84,6 +93,7 @@ class Simulation:
                 self.events.zoom_in()
                 self.events.zoom_out()
                 self.events.clickInObstacle()
+                self.events.clickOnMap()
                     
             if event.type == pygame.KEYDOWN:
                 self.events.moveCameraRight()
@@ -138,7 +148,7 @@ class Simulation:
                 return
             time.sleep(1 / self.traffic.vehiclesPerSecond)
             random_mass = 1
-            random_speed = self.kmHToPixelsPerS(80)
+            random_speed = self.kmHToPixelsPerS(200)
             self.traffic.addVehicle(random_mass, random_speed)
 
 
@@ -170,7 +180,15 @@ class SimulationEvents:
         self.event = event
         self.simulation:Simulation = parent
     
+    def clickOnMap(self):
+        # when click on map, copy the position of the mouse to the clipboard
+        mouse = pygame.mouse.get_pos()
+        map_mouse_pos = [round((mouse[0] - self.simulation.background_pos[0]) / self.simulation.zoom_level, 2), round((mouse[1] - self.simulation.background_pos[1]) / self.simulation.zoom_level, 2)]
+        pyperclip.copy(str(map_mouse_pos))
+        print("Copied to clipboard")
+
     def clickOnCar(self):
+        return
         mouse = pygame.mouse.get_pos()
         for vehicle in self.simulation.traffic.vehicles:
             if vehicle.position.x * self.simulation.zoom_level + self.simulation.background_pos[0] < mouse[0] < vehicle.position.x * self.simulation.zoom_level + self.simulation.background_pos[0] + vehicle.width * self.simulation.zoom_level and vehicle.position.y * self.simulation.zoom_level + self.simulation.background_pos[1] < mouse[1] < vehicle.position.y * self.simulation.zoom_level + self.simulation.background_pos[1] + vehicle.height * self.simulation.zoom_level:
@@ -178,6 +196,7 @@ class SimulationEvents:
         return False
 
     def clickInObstacle(self):
+        return
         mouse = pygame.mouse.get_pos()
         for obstacle in self.simulation.traffic.obstacles:
             if obstacle.x * self.simulation.zoom_level + self.simulation.background_pos[0] < mouse[0] < obstacle.x * self.simulation.zoom_level + self.simulation.background_pos[0] + obstacle.width * self.simulation.zoom_level and obstacle.y * self.simulation.zoom_level + self.simulation.background_pos[1] < mouse[1] < obstacle.y * self.simulation.zoom_level + self.simulation.background_pos[1] + obstacle.height * self.simulation.zoom_level:

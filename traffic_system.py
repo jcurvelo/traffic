@@ -5,6 +5,7 @@ import time
 import random
 from pymunk.vec2d import Vec2d
 
+
 class Traffic:
     def __init__(self,screen,zoom_level,background_pos) -> None:
         # from 0 to 11 hours, the rate of vehicles per hour
@@ -57,11 +58,24 @@ class Traffic:
                 self.vehicles.remove(vehicle)
     
     def addVehicle(self,mass:int=1,max_speed:int=1):
-        vehicle = Vehicle(800,1900,self.screen)
+        randomRoad = self.roads[0]
+        vehicle = Vehicle(randomRoad.points[0].x,randomRoad.points[0].y,self.screen)
         # random float between 0.5 and 3
         vehicle.mass = mass
-        vehicle.road = list(filter(lambda road: road.roadName == 'Main Road',self.roads))[0]
-        vehicle.nextRoad = list(filter(lambda road: road.roadName == 'Left Road A R',self.roads))[0]
+        # set one random road to the vehicle
+        vehicle.road = randomRoad
+        vehicle.nextRoad = self.roads[2]
+
+        # if the x of the first point of the road is greater than the x of the last point of the road
+        # reverse the points of the road and set direction to east to west
+        
+        if vehicle.road.points[0].x < vehicle.road.points[-1].x:
+            vehicle.nextRoad.points.reverse()
+            vehicle.nextRoad.direction = 'east_to_west'
+        else:
+            vehicle.nextRoad.direction = 'west_to_east'
+        
+        
         vehicle.max_speed = max_speed
         vehicle.kwonObstacles = self.obstacles
         vehicle.otherKwonVehicles = [v for v in self.vehicles if v != vehicle]

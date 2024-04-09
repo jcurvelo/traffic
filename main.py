@@ -18,7 +18,7 @@ FPS = 24
 
 
 
-background = pygame.image.load("assets/road_structure.png")
+background = pygame.image.load("assets/tiled/map_tiled.png")
 background = pygame.transform.scale(background, (BACKGROUND_WIDTH, BACKGROUND_HEIGHT))
 
 # Variables to keep track of the zoom level and position of the background

@@ -342,7 +342,9 @@ class Vehicle:
     
     def changingRoads(self):
         if self.nextRoad:
-            if self.position.get_distance(Vec2d(self.nextRoad.points[0].x, self.nextRoad.points[0].y)) < 50:
+            isCloseToStartNextRoad = self.position.get_distance(Vec2d(self.nextRoad.points[0].x, self.nextRoad.points[0].y)) < 100
+            isCloseToEndNextRoad = self.position.get_distance(Vec2d(self.nextRoad.points[-1].x, self.nextRoad.points[-1].y)) < 100
+            if isCloseToStartNextRoad or isCloseToEndNextRoad:
                 self.road = self.nextRoad
                 self.nextRoad = None
                 return True
